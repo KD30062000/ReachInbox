@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "dependencies": {
+    "bull": "^4.16.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.14.0",
+    "googleapis": "^143.0.0",
+    "openai": "^4.56.1"
+  }
+}
