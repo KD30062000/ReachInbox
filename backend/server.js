@@ -1,388 +1,14 @@
-// const express = require('express');
-// const path = require('path');
-// const { OAuth2Client } = require('google-auth-library');
-// const dotenv = require('dotenv');
-
-// dotenv.config();
-
-// const app = express();
-// const port = process.env.PORT || 3000;
-
-// const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-// const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-// const REDIRECT_URI = `http://localhost:${port}/auth/google/callback`;
-
-// const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-// // Serve static files from the 'frontend' directory
-// app.use(express.static(path.join(__dirname, '..', 'frontend')));
-
-// app.get('/auth/google', (req, res) => {
-//   const authUrl = oauth2Client.generateAuthUrl({
-//     access_type: 'offline',
-//     scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email']
-//   });
-//   res.redirect(authUrl);
-// });
-
-// app.get('/auth/google/callback', async (req, res) => {
-//   const { code } = req.query;
-//   try {
-//     const { tokens } = await oauth2Client.getToken(code);
-//     oauth2Client.setCredentials(tokens);
-    
-//     res.send(`
-//       <script>
-//         window.opener.postMessage({ token: '${tokens.access_token}' }, '*');
-//         window.close();
-//       </script>
-//     `);
-//   } catch (error) {
-//     console.error('Error getting tokens:', error);
-//     res.status(500).send('Authentication failed');
-//   }
-// });
-
-// app.listen(port, () => {
-//   console.log(`Server running at http://localhost:${port}`);
-// });
-
-
-
-
-
-
-// New Code
-// const express = require('express');
-// const path = require('path');
-// const { OAuth2Client } = require('google-auth-library');
-// const { google } = require('googleapis');
-// const dotenv = require('dotenv');
-// const Queue = require('bull');
-
-// dotenv.config();
-
-// const app = express();
-// const port = process.env.PORT || 3000;
-
-// const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-// const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-// const REDIRECT_URI = `http://localhost:${port}/auth/google/callback`;
-
-// const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-// // Create a Bull queue for email processing
-// const emailQueue = new Queue('email-processing', process.env.REDIS_URL);
-
-// // Serve static files from the 'frontend' directory
-// app.use(express.static(path.join(__dirname, '..', 'frontend')));
-
-// app.get('/auth/google', (req, res) => {
-//   const authUrl = oauth2Client.generateAuthUrl({
-//     access_type: 'offline',
-//     scope: ['https://www.googleapis.com/auth/gmail.modify','https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email']
-//     // scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email','https://www.googleapis.com/auth/gmail.readonly']
-//   });
-//   res.redirect(authUrl);
-// });
-
-// app.get('/auth/google/callback', async (req, res) => {
-//   const { code } = req.query;
-//   try {
-//     const { tokens } = await oauth2Client.getToken(code);
-//     oauth2Client.setCredentials(tokens);
-    
-//     // Start the email processing
-//     await processEmails(oauth2Client);
-
-//     res.send(`
-//       <script>
-//         window.opener.postMessage({ success: true }, '*');
-//         window.close();
-//       </script>
-//     `);
-//   } catch (error) {
-//     console.error('Error getting tokens:', error);
-//     res.status(500).send('Authentication failed');
-//   }
-// });
-
-// async function processEmails(auth) {
-//   const gmail = google.gmail({ version: 'v1', auth });
-
-//   try {
-//     const res = await gmail.users.messages.list({
-//       userId: 'me',
-//       q: 'is:unread'
-//     });
-
-//     const messages = res.data.messages || [];
-
-//     for (const message of messages) {
-//       await emailQueue.add('process-email', {
-//         messageId: message.id,
-//         auth: auth.credentials
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error fetching emails:', error);
-//   }
-// }
-
-// // Define the email processing job
-// emailQueue.process('process-email', async (job) => {
-//   const { messageId, auth } = job.data;
-//   const gmail = google.gmail({ version: 'v1', auth: new OAuth2Client().setCredentials(auth) });
-
-//   try {
-//     // Fetch the full message
-//     const message = await gmail.users.messages.get({
-//       userId: 'me',
-//       id: messageId
-//     });
-
-//     // Process the message (e.g., send an auto-reply)
-//     await sendAutoReply(gmail, message.data);
-
-//     // Mark the message as read
-//     await gmail.users.messages.modify({
-//       userId: 'me',
-//       id: messageId,
-//       requestBody: {
-//         removeLabelIds: ['UNREAD']
-//       }
-//     });
-
-//     console.log(`Processed email: ${messageId}`);
-//   } catch (error) {
-//     console.error(`Error processing email ${messageId}:`, error);
-//   }
-// });
-
-// async function sendAutoReply(gmail, message) {
-//   const headers = message.payload.headers;
-//   const to = headers.find(h => h.name === 'From').value;
-//   const subject = headers.find(h => h.name === 'Subject').value;
-
-//   const replyMessage = {
-//     userId: 'me',
-//     resource: {
-//       raw: Buffer.from(
-//         `To: ${to}\r\n` +
-//         `Subject: Re: ${subject}\r\n` +
-//         `Content-Type: text/plain; charset="UTF-8"\r\n` +
-//         `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-//         `Thank you for your email. This is an automatic reply.`
-//       ).toString('base64')
-//     }
-//   };
-
-//   await gmail.users.messages.send(replyMessage);
-// }
-
-// app.listen(port, () => {
-//   console.log(`Server running at http://localhost:${port}`);
-// });
-
-// New Code
-
-// import express from 'express';
-// import path from 'path';
-// import { fileURLToPath } from 'url'; // New import to handle __dirname
-// import { OAuth2Client } from 'google-auth-library';
-// import { google } from 'googleapis';
-// import dotenv from 'dotenv';
-// import Queue from 'bull';
-// import OpenAI from 'openai';
-
-// dotenv.config();
-
-// const app = express();
-// const port = process.env.PORT || 3000;
-
-// const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-// const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-// const REDIRECT_URI = `http://localhost:${port}/auth/google/callback`;
-// const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-// const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-// // Create a Bull queue for email processing
-// const emailQueue = new Queue('email-processing', process.env.REDIS_URL);
-
-// // Initialize OpenAI client
-// const openai = new OpenAI({
-//     apiKey: OPENAI_API_KEY
-// });
-
-// // Handle __dirname in ES Modules
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
-// // Serve static files from the 'frontend' directory
-// app.use(express.static(path.join(__dirname, '..', 'frontend')));
-
-// app.get('/auth/google', (req, res) => {
-//     const authUrl = oauth2Client.generateAuthUrl({
-//         access_type: 'offline',
-//         // scope: [
-//         //     // 'https://www.googleapis.com/auth/gmail.modify',
-//         //     'https://www.googleapis.com/auth/userinfo.profile',
-//         //     'https://www.googleapis.com/auth/userinfo.email'
-//         // ]
-//         scope: [
-//             'https://www.googleapis.com/auth/gmail.modify',   // Required for modifying messages
-//             'https://www.googleapis.com/auth/gmail.readonly', // Read access to Gmail messages
-//             'https://www.googleapis.com/auth/gmail.metadata', // Access to message metadata
-//             'https://www.googleapis.com/auth/userinfo.profile',
-//             'https://www.googleapis.com/auth/userinfo.email'
-//         ]
-//     });
-//     res.redirect(authUrl);
-// });
-
-// app.get('/auth/google/callback', async (req, res) => {
-//     const { code } = req.query;
-//     try {
-//         const { tokens } = await oauth2Client.getToken(code);
-//         oauth2Client.setCredentials(tokens);
-        
-//         // Start the email processing
-//         await processEmails(oauth2Client);
-
-//         res.send(`
-//             <script>
-//                 window.opener.postMessage({ success: true }, '*');
-//                 window.close();
-//             </script>
-//         `);
-//     } catch (error) {
-//         console.error('Error getting tokens:', error);
-//         res.status(500).send('Authentication failed');
-//     }
-// });
-
-// async function processEmails(auth) {
-//     const gmail = google.gmail({ version: 'v1', auth });
-
-//     try {
-//         const res = await gmail.users.messages.list({
-//             userId: 'me',
-//             // q: 'is:unread'
-//         });
-
-//         const messages = res.data.messages || [];
-
-//         for (const message of messages) {
-//             await emailQueue.add('process-email', {
-//                 messageId: message.id,
-//                 auth: auth.credentials
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Error fetching emails:', error);
-//     }
-// }
-
-// // Define the email processing job
-// emailQueue.process('process-email', async (job) => {
-//     const { messageId, auth } = job.data;
-//     const gmail = google.gmail({ version: 'v1', auth: new OAuth2Client().setCredentials(auth) });
-
-//     try {
-//         // Fetch the full message
-//         const message = await gmail.users.messages.get({
-//             userId: 'me',
-//             id: messageId
-//         });
-
-//         // Extract the email content
-//         const emailContent = getEmailContent(message.data);
-
-//         // Generate a reply using OpenAI
-//         const aiReply = await generateAIReply(emailContent);
-
-//         // Send the AI-generated reply
-//         await sendAutoReply(gmail, message.data, aiReply);
-
-//         // Mark the message as read
-//         await gmail.users.messages.modify({
-//             userId: 'me',
-//             id: messageId,
-//             requestBody: {
-//                 removeLabelIds: ['UNREAD']
-//             }
-//         });
-
-//         console.log(`Processed email: ${messageId}`);
-//     } catch (error) {
-//         console.error(`Error processing email ${messageId}:`, error);
-//     }
-// });
-
-// function getEmailContent(message) {
-//     const payload = message.payload;
-//     const parts = payload.parts || [];
-//     let emailContent = '';
-
-//     if (payload.mimeType === 'text/plain') {
-//         emailContent = Buffer.from(payload.body.data, 'base64').toString('utf-8');
-//     } else {
-//         for (const part of parts) {
-//             if (part.mimeType === 'text/plain') {
-//                 emailContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
-//                 break;
-//             }
-//         }
-//     }
-//     return emailContent;
-// }
-
-// async function generateAIReply(emailContent) {
-//     const completion = await openai.chat.completions.create({
-//         model: "gpt-4",
-//         messages: [{ role: "user", content: emailContent }],
-//         max_tokens: 150
-//     });
-
-//     return completion.choices[0].message.content.trim();
-// }
-
-// async function sendAutoReply(gmail, message, aiReply) {
-//     const headers = message.payload.headers;
-//     const to = headers.find(h => h.name === 'From').value;
-//     const subject = headers.find(h => h.name === 'Subject').value;
-
-//     const replyMessage = {
-//         userId: 'me',
-//         resource: {
-//             raw: Buffer.from(
-//                 `To: ${to}\r\n` +
-//                 `Subject: Re: ${subject}\r\n` +
-//                 `Content-Type: text/plain; charset="UTF-8"\r\n` +
-//                 `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-//                 `${aiReply}`
-//             ).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-//         }
-//     };
-
-//     await gmail.users.messages.send(replyMessage);
-// }
-
-// app.listen(port, () => {
-//     console.log(`Server running at http://localhost:${port}`);
-// });
-
-
-// New Code
+// Using GenAi
+import { TextServiceClient } from "@google-ai/generativelanguage";
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
-import Queue from 'bull';
-import OpenAI from 'openai';
+import { Queue, Worker } from 'bullmq';
+import IORedis from 'ioredis';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -392,19 +18,11 @@ const port = process.env.PORT || 3000;
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `http://localhost:${port}/auth/google/callback`;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const REDIS_URL = process.env.REDIS_URL;
+const GENAI_API_URL = process.env.GENAI_API_URL || "https://generativelanguage.googleapis.com";
+const GENAI_API_KEY = process.env.GENAI_API_KEY;
 
 // Initialize OAuth2Client
 const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-// Initialize Bull queue for email processing
-const emailQueue = new Queue('email-processing', REDIS_URL);
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY
-});
 
 // Handle __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -413,155 +31,222 @@ const __dirname = path.dirname(__filename);
 // Serve static files from the 'frontend' directory
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
+// Initialize BullMQ
+const connection = {
+    host: 'localhost',
+    port: 6379,
+    maxRetriesPerRequest: null,
+};
+const emailQueue = new Queue('emailQueue', { connection });
+
+// Secure token storage (replace with your database solution)
+let tokenStorage = {};
+
+// Save tokens securely
+async function saveTokens(userId, tokens) {
+    tokenStorage[userId] = tokens;
+    console.log(`Tokens saved for user: ${userId}`);
+}
+
+// Retrieve tokens
+async function getTokens(userId) {
+    const tokens = tokenStorage[userId];
+    console.log(`Retrieved tokens for user: ${userId}`, tokens ? 'Tokens found' : 'No tokens found');
+    return tokens;
+}
+
 // Google OAuth2 authorization
 app.get('/auth/google', (req, res) => {
     const authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: [
             'https://www.googleapis.com/auth/gmail.modify',
-            'https://www.googleapis.com/auth/gmail.readonly',
-            'https://www.googleapis.com/auth/gmail.metadata',
             'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/userinfo.email'
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/gmail.compose'
         ]
     });
+    console.log('Redirecting to Google OAuth URL:', authUrl);
     res.redirect(authUrl);
 });
 
-// Google OAuth2 callback
 app.get('/auth/google/callback', async (req, res) => {
     const { code } = req.query;
+    console.log('Received OAuth callback with code:', code);
     try {
         const { tokens } = await oauth2Client.getToken(code);
-        oauth2Client.setCredentials(tokens);
+        console.log('Received tokens from Google:', tokens);
+        const userInfo = await getUserInfo(tokens);
+        console.log('User info retrieved:', userInfo.email);
+        await saveTokens(userInfo.email, tokens);
 
-        // Store tokens securely
-        saveTokensToDatabase(tokens);
+        console.log('Adding job to the email queue for processing emails...');
+        await emailQueue.add('processEmails', { userId: userInfo.email });
+        console.log('Job added to the email queue.');
 
-        // Start email processing
-        await processEmails(oauth2Client);
-
-        res.send(`
-            <script>
-                window.opener.postMessage({ success: true }, '*');
-                window.close();
-            </script>
-        `);
+        res.send('Email processing job has been queued. Check your console for updates.');
     } catch (error) {
-        console.error('Error getting tokens:', error);
-        res.status(500).send('Authentication failed');
+        console.error('Error in OAuth callback:', error);
+        res.status(500).send('Authentication failed: ' + error.message);
     }
 });
 
-// Refresh access token
-async function refreshToken() {
-    try {
-        const { tokens } = await oauth2Client.refreshToken(oauth2Client.credentials.refresh_token);
-        oauth2Client.setCredentials(tokens);
-        updateTokensInDatabase(tokens);
-        return tokens;
-    } catch (error) {
-        console.error('Error refreshing token:', error);
-        throw error;
-    }
+async function getUserInfo(tokens) {
+    console.log('Getting user info');
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    oauth2Client.setCredentials(tokens);
+    const userInfoResponse = await oauth2.userinfo.get();
+    return userInfoResponse.data;
 }
 
-// Process emails
-async function processEmails(auth) {
-    const gmail = google.gmail({ version: 'v1', auth });
+// Worker to process emails from the queue
+const worker = new Worker('emailQueue', async job => {
+    const { userId } = job.data;
+    console.log(`Processing emails for user: ${userId}`);
+    let lastCheckedTime = new Date();
 
     try {
+        await processNewEmails(userId, lastCheckedTime);
+        console.log(`Emails processed for user: ${userId}`);
+    } catch (error) {
+        console.error('Error processing emails:', error);
+    }
+}, { connection });
+
+// Process new emails
+async function processNewEmails(userId, lastCheckedTime) {
+    console.log(`Processing new emails for user: ${userId}`);
+    try {
+        const tokens = await getTokens(userId);
+        if (!tokens) throw new Error('No tokens found for user');
+
+        oauth2Client.setCredentials(tokens);
+        const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+        // Calculate the timestamp for 2 hours ago
+        const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+        const formattedDateTime = twoHoursAgo.toISOString();
+        console.log(`Fetching unread emails after: ${formattedDateTime}`);
+
         const res = await gmail.users.messages.list({
-            userId: 'me'
+            userId: 'me',
+            q: `after:${Math.floor(twoHoursAgo.getTime() / 1000)} is:unread label:inbox`
         });
+
+        console.log('Gmail API response:', res.data);
 
         const messages = res.data.messages || [];
+        console.log(`Found ${messages.length} new unread message(s)`);
+
+        if (messages.length === 0) {
+            console.log('No new unread messages found.');
+            return;
+        }
 
         for (const message of messages) {
-            await emailQueue.add('process-email', {
-                messageId: message.id,
-                auth: auth.credentials
+            console.log(`Fetching full message for ID: ${message.id}`);
+            const fullMessage = await gmail.users.messages.get({
+                userId: 'me',
+                id: message.id
             });
+
+            const body = getBody(fullMessage.data.payload);
+            console.log('Email body:', body);
+
+            const replyContent = await generateReplyWithGenAI(body);
+            console.log('Generated reply:', replyContent);
+
+            await sendGenAIReply(gmail, fullMessage.data, replyContent);
+
+            await gmail.users.messages.modify({
+                userId: 'me',
+                id: message.id,
+                requestBody: {
+                    removeLabelIds: ['UNREAD']
+                }
+            });
+
+            console.log(`Marked message ${message.id} as read.`);
         }
+
     } catch (error) {
-        if (error.response && error.response.status === 401) {
-            try {
-                const tokens = await refreshToken();
-                await processEmails(oauth2Client.setCredentials(tokens));
-            } catch (refreshError) {
-                console.error('Error refreshing token:', refreshError);
-            }
-        } else {
-            console.error('Error fetching emails:', error);
-        }
+        console.error('Error processing new emails:', error);
     }
 }
 
-// Define the email processing job
-emailQueue.process('process-email', async (job) => {
-    const { messageId, auth } = job.data;
-    const gmail = google.gmail({ version: 'v1', auth: new OAuth2Client().setCredentials(auth) });
+// Helper function to get the body of the email
+function getBody(payload) {
+    let body = '';
 
-    try {
-        const message = await gmail.users.messages.get({
-            userId: 'me',
-            id: messageId
-        });
-
-        const emailContent = getEmailContent(message.data);
-        const aiReply = await generateAIReply(emailContent);
-
-        await sendAutoReply(gmail, message.data, aiReply);
-
-        await gmail.users.messages.modify({
-            userId: 'me',
-            id: messageId,
-            requestBody: {
-                removeLabelIds: ['UNREAD']
-            }
-        });
-
-        console.log(`Processed email: ${messageId}`);
-    } catch (error) {
-        console.error(`Error processing email ${messageId}:`, error);
+    if (!payload) {
+        console.error('Payload is undefined');
+        return body;
     }
-});
 
-// Extract email content
-function getEmailContent(message) {
-    const payload = message.payload;
-    const parts = payload.parts || [];
-    let emailContent = '';
-
-    if (payload.mimeType === 'text/plain') {
-        emailContent = Buffer.from(payload.body.data, 'base64').toString('utf-8');
+    if (payload.parts && Array.isArray(payload.parts)) {
+        for (const part of payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+                body += Buffer.from(part.body.data, 'base64').toString('utf-8');
+            } else if (part.mimeType === 'text/html' && part.body && part.body.data) {
+                body += Buffer.from(part.body.data, 'base64').toString('utf-8');
+            } else if (part.parts && Array.isArray(part.parts)) {
+                body += getBody(part);
+            }
+        }
+    } else if (payload.body && payload.body.data) {
+        body = Buffer.from(payload.body.data, 'base64').toString('utf-8');
     } else {
-        for (const part of parts) {
-            if (part.mimeType === 'text/plain') {
-                emailContent = Buffer.from(part.body.data, 'base64').toString('utf-8');
-                break;
-            }
-        }
+        console.error('No suitable body found in the email');
     }
-    return emailContent;
+
+    return body;
 }
 
-// Generate AI reply
-async function generateAIReply(emailContent) {
-    const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: emailContent }],
-        max_tokens: 150
-    });
+const auth = new GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  });
 
-    return completion.choices[0].message.content.trim();
+  async function generateReplyWithGenAI(emailContent) {
+    try {
+        const client = await auth.getClient();
+        const accessToken = await client.getAccessToken();
+
+        const response = await axios.post(`${GENAI_API_URL}/v1beta/models/text-bison-001:generateText`, {
+            prompt: {
+                text: `Please generate a polite and professional reply to the following email:\n\n${emailContent}`
+            },
+            temperature: 0.7,
+            candidateCount: 1,
+            maxOutputTokens: 1024,
+        }, {
+            headers: {
+                'Authorization': `Bearer ${accessToken.token}`,
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (response.data && response.data.candidates && response.data.candidates.length > 0) {
+            return response.data.candidates[0].output;
+        } else {
+            console.error('Unexpected response structure:', response.data);
+            return 'I apologize, but I am unable to generate a suitable reply at this time. Please check your email later.';
+        }
+    } catch (error) {
+        console.error('Error generating reply with GenAI:', error.response ? error.response.data : error.message);
+        if (error.response && error.response.status === 401) {
+            console.error('Authentication failed. Please check your Google Cloud credentials.');
+        }
+        return 'I apologize, but I am unable to generate a suitable reply at this time. Please check your email later.';
+    }
 }
 
-// Send auto-reply
-async function sendAutoReply(gmail, message, aiReply) {
+// Send the generated reply
+async function sendGenAIReply(gmail, message, replyContent) {
     const headers = message.payload.headers;
     const to = headers.find(h => h.name === 'From').value;
-    const subject = headers.find(h => h.name === 'Subject').value;
+    const subject = headers.find(h => h.name === 'Subject')?.value || 'No Subject';
+
+    console.log(`Preparing to send GenAI reply to: ${to}, Subject: ${subject}`);
 
     const replyMessage = {
         userId: 'me',
@@ -571,24 +256,17 @@ async function sendAutoReply(gmail, message, aiReply) {
                 `Subject: Re: ${subject}\r\n` +
                 `Content-Type: text/plain; charset="UTF-8"\r\n` +
                 `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-                `${aiReply}`
+                `${replyContent}`
             ).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
         }
     };
 
-    await gmail.users.messages.send(replyMessage);
-}
-
-// Save tokens to database (dummy implementation)
-function saveTokensToDatabase(tokens) {
-    // Implement your secure storage solution
-    console.log('Saving tokens:', tokens);
-}
-
-// Update tokens in database (dummy implementation)
-function updateTokensInDatabase(tokens) {
-    // Implement your secure storage solution
-    console.log('Updating tokens:', tokens);
+    try {
+        const response = await gmail.users.messages.send(replyMessage);
+        console.log('Reply sent successfully:', response.data);
+    } catch (error) {
+        console.error('Error sending GenAI reply:', error);
+    }
 }
 
 // Start server
