@@ -1,0 +1,85 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In Example</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Google Sign-In Example</h1>
+        <button onclick="signIn()">Sign in with Google</button>
+        <div id="token-display"></div>
+    </div>
+
+    <script>
+        function signIn() {
+            const width = 500;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+            const popup = window.open('/auth/google', 'Google Sign-In', 
+                `width=${width},height=${height},left=${left},top=${top}`);
+            
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) return;
+                
+                if (event.data.token) {
+                    const tokenDisplay = document.getElementById('token-display');
+                    tokenDisplay.innerHTML = `
+                        <h3>Access Token Received:</h3>
+                        <p>${event.data.token}</p>
+                    `;
+                    popup.close();
+                }
+            }, false);
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+<!-- New Code -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Auto-Reply Example</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gmail Auto-Reply Example</h1>
+        <button onclick="signIn()">Sign in with Google</button>
+        <div id="status-display"></div>
+    </div>
+
+    <script>
+        function signIn() {
+            const width = 500;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+            const popup = window.open('/auth/google', 'Google Sign-In', 
+                `width=${width},height=${height},left=${left},top=${top}`);
+            
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) return;
+                
+                if (event.data.success) {
+                    const statusDisplay = document.getElementById('status-display');
+                    statusDisplay.innerHTML = `
+                        <h3>Authentication Successful</h3>
+                        <p>The application is now processing your emails and sending auto-replies.</p>
+                    `;
+                    popup.close();
+                }
+            }, false);
+        }
+    </script>
+</body>
+</html>
